@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WeChat Master</title>
+    <title>WeChat Master Pro</title>
     <style>
-        /* 定義主題變數 */
         :root {
             --bg-color: #ededed;
             --header-bg: #ededed;
@@ -13,39 +12,30 @@
             --msg-other: #ffffff;
             --text-color: #191919;
             --accent-color: #07c160;
+            --select-border: transparent;
         }
 
-        /* 櫻花系列 */
         [data-theme="sakura"] {
-            --bg-color: #fff0f5;
-            --header-bg: #ffd1dc;
-            --msg-me: #ffb7c5;
-            --msg-other: #ffffff;
-            --accent-color: #ff69b4;
+            --bg-color: #fff0f5; --header-bg: #ffd1dc; --msg-me: #ffb7c5; --accent-color: #ff69b4;
         }
-
-        /* 藍色系列 */
         [data-theme="blue"] {
-            --bg-color: #e0f2fe;
-            --header-bg: #bae6fd;
-            --msg-me: #7dd3fc;
-            --msg-other: #ffffff;
-            --accent-color: #0284c7;
+            --bg-color: #e0f2fe; --header-bg: #bae6fd; --msg-me: #7dd3fc; --accent-color: #0284c7;
+        }
+        [data-theme="purple"] {
+            --bg-color: #f3e8ff; --header-bg: #e9d5ff; --msg-me: #d8b4fe; --accent-color: #9333ea;
         }
 
-        /* 淡紫系列 */
-        [data-theme="purple"] {
-            --bg-color: #f3e8ff;
-            --header-bg: #e9d5ff;
-            --msg-me: #d8b4fe;
-            --msg-other: #ffffff;
-            --accent-color: #9333ea;
+        /* 核心防護：禁止所有系統預設選取行為 */
+        * {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none; /* 禁止 iOS 長按彈出選單 */
         }
 
         body, html {
             margin: 0; padding: 0; height: 100%;
-            font-family: -apple-system, sans-serif;
-            background-color: #f0f0f0; /* 外層底色 */
+            background-color: #333; /* 模擬手機外框色 */
         }
 
         #app {
@@ -53,53 +43,49 @@
             height: 100vh; max-width: 500px; margin: 0 auto;
             background-color: var(--bg-color);
             position: relative; overflow: hidden;
-            transition: background 0.3s;
         }
 
-        /* 標題欄 */
         header {
             height: 60px; background-color: var(--header-bg);
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 15px; border-bottom: 1px solid rgba(0,0,0,0.1);
-            z-index: 10;
         }
-        .header-left { display: flex; align-items: center; }
-        .header-avatar { width: 40px; height: 40px; border-radius: 6px; margin-right: 12px; cursor: pointer; object-fit: cover; }
-        #opponent-name { font-weight: bold; font-size: 18px; cursor: pointer; }
-        .settings-btn { font-size: 24px; cursor: pointer; background: none; border: none; }
 
-        /* 聊天主視窗 */
+        /* CSS 齒輪圖示 */
+        .settings-icon {
+            width: 24px; height: 24px; cursor: pointer;
+            border: 3px solid #555; border-radius: 50%;
+            position: relative; display: inline-block;
+        }
+        .settings-icon::after {
+            content: ""; position: absolute; top: -5px; left: 8px;
+            width: 3px; height: 28px; background: #555;
+            box-shadow: 0 0 0 0, 8px -8px 0 0 #555, -8px -8px 0 0 #555;
+            transform: rotate(45deg); /* 簡化版齒輪外觀 */
+        }
+
         #chat-window {
-            flex: 1; overflow-y: auto; padding: 20px 15px;
+            flex: 1; overflow-y: auto; padding: 20px 15px 100px;
             display: flex; flex-direction: column; gap: 20px;
-            padding-bottom: 100px;
         }
 
-        /* 訊息列通用 */
+        /* 訊息佈局 */
         .message-row { display: flex; align-items: flex-start; width: 100%; }
-        
-        /* 我方訊息 (右側) */
         .row-right { flex-direction: row-reverse; }
-        .row-right .bubble-container { flex-direction: row; } /* 時間在左 */
-        
-        /* 對方訊息 (左側) */
         .row-left { flex-direction: row; }
-        .row-left .bubble-container { flex-direction: row-reverse; } /* 時間在右 */
+        .avatar { width: 42px; height: 42px; border-radius: 6px; object-fit: cover; }
 
-        .avatar { width: 42px; height: 42px; border-radius: 6px; cursor: pointer; object-fit: cover; flex-shrink: 0; }
+        .bubble-container { display: flex; align-items: flex-end; max-width: 75%; }
+        .row-right .bubble-container { flex-direction: row; }
+        .row-left .bubble-container { flex-direction: row-reverse; }
 
-        .bubble-container { display: flex; align-items: flex-end; max-width: 75%; position: relative; }
+        .message-time { font-size: 11px; color: #999; margin: 0 8px 5px; white-space: nowrap; }
 
-        .message-time { font-size: 11px; color: #999; margin: 0 8px 5px 8px; white-space: nowrap; }
-
-        /* 氣泡本體 */
         .bubble {
             padding: 10px 14px; border-radius: 6px; font-size: 16px;
-            line-height: 1.5; word-break: break-all; position: relative;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            position: relative; line-height: 1.5;
         }
 
-        /* 尖角實作 */
         .row-right .bubble { background-color: var(--msg-me); margin-right: 10px; }
         .row-right .bubble::before {
             content: ""; position: absolute; right: -8px; top: 10px;
@@ -112,79 +98,87 @@
             border-right: 10px solid var(--msg-other); border-top: 6px solid transparent; border-bottom: 6px solid transparent;
         }
 
-        /* 輸入欄 */
+        /* 輸入框 */
         footer {
             position: absolute; bottom: 15px; left: 10px; right: 10px;
-            background-color: #f7f7f7; padding: 10px; display: flex; gap: 8px;
-            border-radius: 12px; border: 1px solid #ddd;
+            background-color: #f7f7f7; padding: 10px; display: flex; border-radius: 12px; border: 1px solid #ddd;
         }
-        #input-msg { flex: 1; border: none; padding: 10px; font-size: 16px; outline: none; background: transparent; }
-        #send-btn { background-color: var(--accent-color); color: white; border: none; padding: 8px 18px; border-radius: 6px; font-weight: bold; transition: 0.3s; }
+        #input-msg { flex: 1; border: none; background: none; font-size: 16px; outline: none; user-select: text; -webkit-user-select: text; }
 
-        /* 設定頁面層 */
+        /* 設定頁面與主題選取 */
         #settings-page {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: white; z-index: 100; transform: translateX(100%);
-            transition: transform 0.3s ease; display: flex; flex-direction: column;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #settings-page.open { transform: translateX(0); }
-        .settings-header { height: 60px; display: flex; align-items: center; padding: 0 15px; background: #f0f0f0; border-bottom: 1px solid #ddd; }
-        .back-btn { font-size: 18px; cursor: pointer; border: none; background: none; margin-right: 20px; }
         .settings-content { padding: 20px; }
+
         .theme-option {
-            padding: 15px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 10px;
-            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+            padding: 15px; border: 2px solid #eee; border-radius: 10px;
+            margin-bottom: 15px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            transition: all 0.2s;
+        }
+        /* 選中狀態：藍色邊框 */
+        .theme-option.active {
+            border-color: #007aff;
+            background-color: #f0f7ff;
         }
 
-        /* 選單 */
-        #context-menu { position: fixed; background: #4c4c4c; color: white; border-radius: 8px; display: none; z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
-        #context-menu div { padding: 12px 20px; cursor: pointer; font-size: 14px; border-bottom: 1px solid #5a5a5a; }
-        #context-menu div:last-child { border-bottom: none; }
+        /* 長按選單 */
+        #context-menu { position: fixed; background: #4c4c4c; color: white; border-radius: 8px; display: none; z-index: 1000; }
+        #context-menu div { padding: 12px 25px; border-bottom: 1px solid #5a5a5a; }
         #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: none; z-index: 999; }
-        
-        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <header>
-        <div class="header-left">
-            <img src="https://via.placeholder.com/100/eeeeee/999999?text=User" class="header-avatar" id="top-avatar" onclick="triggerUpload('opponent')">
-            <span id="opponent-name" onclick="changeName()">點擊改名</span>
+        <div style="display:flex; align-items:center;">
+            <img src="https://via.placeholder.com/100/eeeeee/999999?text=User" class="avatar" style="width:36px; height:36px; margin-right:10px;" id="top-avatar" onclick="triggerUpload('opponent')">
+            <span id="opponent-name" onclick="changeName()">聊天對象</span>
         </div>
-        <button class="settings-btn" onclick="toggleSettings(true)">⚙️</button>
+        <div class="settings-icon" onclick="toggleSettings(true)"></div>
     </header>
 
     <div id="chat-window"></div>
 
     <footer>
         <input type="text" id="input-msg" placeholder="輸入訊息..." autocomplete="off">
-        <button id="send-btn">發送</button>
+        <button id="send-btn" style="border:none; background:none; color:var(--accent-color); font-weight:bold;">發送</button>
     </footer>
 
     <div id="settings-page">
-        <div class="settings-header">
-            <button class="back-btn" onclick="toggleSettings(false)">← 返回</button>
-            <span style="font-weight: bold;">主題設定</span>
+        <div style="padding:15px; background:#f8f8f8; border-bottom:1px solid #ddd; display:flex; align-items:center;">
+            <button onclick="toggleSettings(false)" style="border:none; background:none; font-size:16px;">✕ 關閉</button>
         </div>
         <div class="settings-content">
-            <h3>選擇聊天主題</h3>
-            <div class="theme-option" onclick="setTheme('default')">經典微信 <span style="color:#07c160">●</span></div>
-            <div class="theme-option" onclick="setTheme('sakura')">櫻花系列 <span style="color:#ff69b4">●</span></div>
-            <div class="theme-option" onclick="setTheme('blue')">海洋藍色 <span style="color:#0284c7">●</span></div>
-            <div class="theme-option" onclick="setTheme('purple')">淡紫系列 <span style="color:#9333ea">●</span></div>
+            <h3>聊天主題</h3>
+            <div class="theme-option active" id="theme-default" onclick="setTheme('default')">
+                <span>經典微信</span><div style="width:20px;height:20px;background:#07c160;border-radius:50%;"></div>
+            </div>
+            <div class="theme-option" id="theme-sakura" onclick="setTheme('sakura')">
+                <span>櫻花系列</span><div style="width:20px;height:20px;background:#ff69b4;border-radius:50%;"></div>
+            </div>
+            <div class="theme-option" id="theme-blue" onclick="setTheme('blue')">
+                <span>海洋藍色</span><div style="width:20px;height:20px;background:#0284c7;border-radius:50%;"></div>
+            </div>
+            <div class="theme-option" id="theme-purple" onclick="setTheme('purple')">
+                <span>淡紫系列</span><div style="width:20px;height:20px;background:#9333ea;border-radius:50%;"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="overlay"></div>
 <div id="context-menu">
-    <div onclick="editMessage()">編輯</div>
+    <div onclick="editMessage()">編輯訊息</div>
     <div onclick="moveMessage()">移動發信人</div>
 </div>
 
-<input type="file" id="file-input" accept="image/*">
+<input type="file" id="file-input" accept="image/*" style="display:none;">
 
 <script>
     const chatWindow = document.getElementById('chat-window');
@@ -203,27 +197,22 @@
         opponent: 'https://via.placeholder.com/100/ffffff/000000?text=A'
     };
 
-    // --- 主題切換 ---
+    // --- 主題切換 (含邊框邏輯) ---
     function setTheme(theme) {
-        if(theme === 'default') {
-            app.removeAttribute('data-theme');
-        } else {
-            app.setAttribute('data-theme', theme);
-        }
+        // 移除所有 active 標籤
+        document.querySelectorAll('.theme-option').forEach(el => el.classList.remove('active'));
+        // 加入當前選中的 active 標籤
+        document.getElementById('theme-' + theme).classList.add('active');
+        
+        if(theme === 'default') app.removeAttribute('data-theme');
+        else app.setAttribute('data-theme', theme);
     }
 
     function toggleSettings(open) {
         document.getElementById('settings-page').classList.toggle('open', open);
     }
 
-    // --- 訊息功能 ---
-    function sendMessage() {
-        const text = inputMsg.value.trim();
-        if (!text) return;
-        createMessageElement(text, 'right');
-        inputMsg.value = "";
-    }
-
+    // --- 訊息核心 ---
     function createMessageElement(text, side) {
         const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const row = document.createElement('div');
@@ -238,18 +227,29 @@
         `;
 
         const bubble = row.querySelector('.bubble');
-        bubble.addEventListener('contextmenu', e => e.preventDefault());
-        
+
+        // 【關鍵】攔截所有可能觸發系統選單的行為
+        const preventDefaultBehavior = (e) => {
+            if (e.cancelable) e.preventDefault();
+        };
+
         const start = (e) => {
             currentMsgElement = row;
-            pressTimer = setTimeout(() => showMenu(e), 600);
+            // 只有在氣泡上長按才觸發
+            pressTimer = setTimeout(() => {
+                showMenu(e);
+            }, 500);
         };
+
         const end = () => clearTimeout(pressTimer);
 
-        bubble.addEventListener('mousedown', start);
-        bubble.addEventListener('touchstart', start, {passive: true});
-        bubble.addEventListener('mouseup', end);
+        bubble.addEventListener('touchstart', start, { passive: false });
         bubble.addEventListener('touchend', end);
+        bubble.addEventListener('contextmenu', e => e.preventDefault()); // 禁止右鍵
+        
+        // 電腦端支援
+        bubble.addEventListener('mousedown', start);
+        bubble.addEventListener('mouseup', end);
 
         chatWindow.appendChild(row);
         chatWindow.scrollTop = chatWindow.scrollHeight;
@@ -258,29 +258,23 @@
     function showMenu(e) {
         const touch = e.touches ? e.touches[0] : e;
         const isRight = currentMsgElement.classList.contains('row-right');
-        
-        // 如果是我方(右)，選單顯示在左側；如果是對方(左)，選單顯示在右側
-        contextMenu.style.left = isRight ? (touch.clientX - 130) + 'px' : (touch.clientX + 10) + 'px';
-        contextMenu.style.top = touch.clientY + 'px';
-        contextMenu.style.display = 'flex';
+        contextMenu.style.left = isRight ? (touch.clientX - 140) + 'px' : (touch.clientX + 10) + 'px';
+        contextMenu.style.top = (touch.clientY - 20) + 'px';
+        contextMenu.style.display = 'block';
         overlay.style.display = 'block';
     }
 
     function moveMessage() {
-        const isCurrentlyRight = currentMsgElement.classList.contains('row-right');
-        currentMsgElement.classList.toggle('row-right', !isCurrentlyRight);
-        currentMsgElement.classList.toggle('row-left', isCurrentlyRight);
-        
+        const isRight = currentMsgElement.classList.contains('row-right');
+        currentMsgElement.className = isRight ? 'message-row row-left' : 'message-row row-right';
         const img = currentMsgElement.querySelector('.avatar');
-        img.src = !isCurrentlyRight ? avatars.me : avatars.opponent;
-        img.onclick = () => triggerUpload(!isCurrentlyRight ? 'me' : 'opponent');
-        
+        img.src = isRight ? avatars.opponent : avatars.me;
         closeMenu();
     }
 
     function editMessage() {
         const bubble = currentMsgElement.querySelector('.bubble');
-        const newText = prompt("編輯訊息：", bubble.innerText);
+        const newText = prompt("修改訊息內容：", bubble.innerText);
         if (newText) bubble.innerText = newText;
         closeMenu();
     }
@@ -292,35 +286,35 @@
 
     overlay.onclick = closeMenu;
 
+    // --- 其他基礎功能 ---
+    sendBtn.onclick = () => {
+        const t = inputMsg.value.trim();
+        if(t) { createMessageElement(t, 'right'); inputMsg.value = ''; }
+    };
+    
+    inputMsg.onkeypress = (e) => { if(e.key==='Enter') sendBtn.onclick(); };
+
     function changeName() {
-        const name = prompt("輸入新的對方名字：");
-        if (name) document.getElementById('opponent-name').innerText = name;
+        const n = prompt("對方名字：");
+        if(n) document.getElementById('opponent-name').innerText = n;
     }
 
-    function triggerUpload(target) {
-        uploadTarget = target;
-        fileInput.click();
-    }
+    function triggerUpload(t) { uploadTarget = t; fileInput.click(); }
 
     fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
         const reader = new FileReader();
-        reader.onload = (event) => {
-            const url = event.target.result;
+        reader.onload = (ev) => {
+            const url = ev.target.result;
             avatars[uploadTarget] = url;
-            if (uploadTarget === 'opponent') {
+            if(uploadTarget === 'opponent') {
                 document.getElementById('top-avatar').src = url;
-                document.querySelectorAll('.row-left .avatar').forEach(img => img.src = url);
+                document.querySelectorAll('.row-left .avatar').forEach(i => i.src = url);
             } else {
-                document.querySelectorAll('.row-right .avatar').forEach(img => img.src = url);
+                document.querySelectorAll('.row-right .avatar').forEach(i => i.src = url);
             }
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(e.target.files[0]);
     };
-
-    sendBtn.onclick = sendMessage;
-    inputMsg.onkeypress = (e) => { if (e.key === 'Enter') sendMessage(); };
 </script>
 
 </body>
